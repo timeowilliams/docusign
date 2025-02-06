@@ -142,9 +142,19 @@ const PDFViewerCore = () => {
   };
 
   const updateElementContent = (id: string, content: string) => {
-    setElements(prev => prev.map(el => 
-      el.id === id ? { ...el, content } : el
-    ));
+    console.log('Updating element:', { id, content }); // Debug logging
+    setElements(prev => {
+      const updatedElements = prev.map(el => {
+        if (el.id === id) {
+          console.log('Found matching element:', el);
+          return { ...el, content };
+        }
+        return el;
+      });
+      
+      console.log('Updated elements:', updatedElements);
+      return updatedElements;
+    });
   };
 
   // Signature handling
@@ -284,13 +294,24 @@ const PDFViewerCore = () => {
                       className="z-10"
                     >
                       {element.type === 'text' ? (
-                        <textarea
-                          value={element.content}
-                          onChange={(e) => updateElementContent(element.id, e.target.value)}
-                          className="w-48 p-2 border rounded resize-none bg-white bg-opacity-80"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      ) : element.type === 'signature' ? (
+  <textarea
+    value={element.content}
+    onChange={(e) => {
+      // Auto-resize textarea
+      e.target.style.height = 'auto';
+      e.target.style.height = `${e.target.scrollHeight}px`;
+            updateElementContent(element.id, e.target.value);
+    }}
+    className="w-48 p-2 border rounded resize-none bg-white bg-opacity-80 overflow-hidden"
+    rows={1}
+    placeholder="Click to edit"
+    onMouseDown={(e) => e.stopPropagation()} // Prevent dragging when interacting with textarea
+    onClick={(e) => {
+      e.stopPropagation(); // Stop event from bubbling up
+      (e.target as HTMLTextAreaElement).focus(); // Explicitly focus the textarea
+    }}
+  />
+) : element.type === 'signature' ? (
                         <img
                           src={element.content}
                           alt="Signature"
